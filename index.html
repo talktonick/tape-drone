@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAPE DRONE — 4 TRACK</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* TEAC 244 inspired palette */
+    --body: #2a2e28;
+    --body-mid: #232620;
+    --body-dark: #1a1c18;
+    --panel-border: #3a3e36;
+    --cream: #e8e0cc;
+    --cream-dim: #a09880;
+    --amber: #e8a832;
+    --amber-glow: #f0bc50;
+    --red-btn: #cc2200;
+    --green-led: #22cc55;
+    --blue-btn: #2255cc;
+    --knob-body: #1e2018;
+    --knob-hi: #3a3e30;
+    --fader-cap: #c8c0a8;
+    --fader-stripe: #8a8470;
+    --track1: #cc4422;
+    --track2: #44aa44;
+    --track3: #ddaa22;
+    --track4: #4488cc;
+    --vu-bg: #0a0c08;
+    --screw: #555e50;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #141612;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 20px 10px 40px;
+    font-family: 'Share Tech Mono', monospace;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.6;
+  }
+
+  .machine {
+    background: linear-gradient(160deg, #2e3229 0%, #252820 40%, #2a2e26 100%);
+    border: 2px solid #3a3e34;
+    border-radius: 8px;
+    padding: 20px;
+    width: 100%;
+    max-width: 860px;
+    box-shadow:
+      0 0 0 1px #161810,
+      0 8px 40px rgba(0,0,0,0.85),
+      inset 0 1px 0 rgba(255,255,220,0.06),
+      inset 0 -1px 0 rgba(0,0,0,0.4);
+    position: relative;
+  }
+
+  /* Top badge strip */
+  .badge-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #3a3e34;
+  }
+
+  .brand {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 6px;
+    color: var(--cream);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.5);
+  }
+
+  .model {
+    font-size: 10px;
+    color: var(--cream-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .power-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .power-led {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #440000;
+    box-shadow: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid #220000;
+  }
+
+  .power-led.on {
+    background: var(--green-led);
+    box-shadow: 0 0 8px var(--green-led), 0 0 20px rgba(0,204,68,0.3);
+    border-color: #00aa33;
+  }
+
+  .power-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--cream-dim);
+    background: linear-gradient(180deg, #323630 0%, #252820 100%);
+    border: 1px solid #4a4e44;
+    border-radius: 3px;
+    padding: 5px 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .power-btn:hover { color: var(--cream); border-color: #6a6e60; }
+  .power-btn.active { color: var(--green-led); border-color: var(--green-led); box-shadow: 0 0 10px rgba(34,204,85,0.2); }
+
+  /* Tape window */
+  .tape-window {
+    background: #0e1010;
+    border: 2px solid #2a2e28;
+    border-radius: 4px;
+    padding: 10px 16px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+  }
+
+  .reel {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #3a3e30 0%, #1a1c18 60%, #0e1010 100%);
+    border: 2px solid #2a2e24;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 1px #0a0c08, inset 0 0 10px rgba(0,0,0,0.6);
+  }
+
+  .reel-hub {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, #555e48 0%, #252820 100%);
+    border: 1px solid #3a3e30;
+  }
+
+  .reel-spoke {
+    position: absolute;
+    width: 1px;
+    height: 16px;
+    background: #3a3e30;
+    transform-origin: 50% 100%;
+    bottom: 50%;
+    left: 50%;
+    margin-left: -0.5px;
+  }
+
+  @keyframes reel-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .reel.spinning .reel-spokes {
+    animation: reel-spin 2s linear infinite;
+  }
+
+  .reel-spokes {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+  }
+
+  .tape-path {
+    flex: 1;
+    height: 8px;
+    background: linear-gradient(90deg, #0e1010 0%, #1c1e1a 30%, #1c1e1a 70%, #0e1010 100%);
+    border-top: 1px solid #2a2e24;
+    border-bottom: 1px solid #080a08;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tape-shimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(232,168,50,0.2) 50%, transparent 100%);
+    animation: tape-move 1s linear infinite;
+    opacity: 0;
+  }
+
+  .tape-shimmer.moving { opacity: 1; }
+
+  @keyframes tape-move {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(200%); }
+  }
+
+  .tape-counter {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 20px;
+    color: var(--amber);
+    text-shadow: 0 0 10px rgba(232,168,50,0.5);
+    letter-spacing: 4px;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  /* Transport controls */
+  .transport {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding: 12px;
+    background: linear-gradient(180deg, #1e2118 0%, #191c14 100%);
+    border-radius: 4px;
+    border: 1px solid #2e3228;
+  }
+
+  .transport-btn {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--cream-dim);
+    background: linear-gradient(180deg, #323630 0%, #252820 100%);
+    border: 1px solid #4a4e42;
+    border-radius: 3px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,200,0.04);
+    min-width: 60px;
+  }
+
+  .transport-btn:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+  .transport-btn:hover { color: var(--cream); border-color: #6a6e60; }
+  .transport-btn.play-active { color: var(--green-led); border-color: var(--green-led); box-shadow: 0 0 8px rgba(34,204,85,0.25), 0 2px 4px rgba(0,0,0,0.5); }
+  .transport-btn.rec-active { color: #ff4422; border-color: #cc2200; background: linear-gradient(180deg, #3a1810 0%, #280e08 100%); box-shadow: 0 0 8px rgba(204,34,0,0.35), 0 2px 4px rgba(0,0,0,0.5); }
+
+  /* Channel strip grid */
+  .channels {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .channel {
+    background: linear-gradient(180deg, #232620 0%, #1c1e18 100%);
+    border-radius: 4px;
+    border: 1px solid #333730;
+    padding: 10px 8px 14px;
+    position: relative;
+    box-shadow: inset 0 1px 0 rgba(255,255,220,0.03);
+  }
+
+  .channel-header {
+    text-align: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #2e3228;
+  }
+
+  .channel-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+  }
+
+  .channel-label {
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--cream-dim);
+    text-transform: uppercase;
+  }
+
+  /* VU Meter */
+  .vu-meter {
+    width: 100%;
+    height: 6px;
+    background: var(--vu-bg);
+    border-radius: 2px;
+    border: 1px solid #1a1c18;
+    margin-bottom: 10px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .vu-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 2px;
+    transition: width 0.05s;
+  }
+
+  /* Knob rows */
+  .knob-row {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 10px;
+  }
+
+  .knob-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .knob-label {
+    font-size: 7px;
+    letter-spacing: 1.5px;
+    color: var(--cream-dim);
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .knob-wrap {
+    position: relative;
+    width: 36px;
+    height: 36px;
+  }
+
+  .knob {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, #3a3e30 0%, #1e2018 60%, #111310 100%);
+    border: 1px solid #2e3228;
+    cursor: ns-resize;
+    position: relative;
+    box-shadow:
+      0 3px 8px rgba(0,0,0,0.7),
+      0 1px 2px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,200,0.05);
+    user-select: none;
+    transition: box-shadow 0.1s;
+  }
+
+  .knob:hover { box-shadow: 0 3px 8px rgba(0,0,0,0.7), 0 0 6px rgba(232,168,50,0.12), inset 0 1px 0 rgba(255,255,200,0.05); }
+  .knob:active { box-shadow: 0 1px 4px rgba(0,0,0,0.7), 0 0 10px rgba(232,168,50,0.2), inset 0 1px 0 rgba(255,255,200,0.05); }
+
+  .knob-dot {
+    position: absolute;
+    width: 3px;
+    height: 10px;
+    background: var(--cream);
+    border-radius: 2px;
+    left: 50%;
+    top: 4px;
+    transform-origin: 50% 14px;
+    margin-left: -1.5px;
+    box-shadow: 0 0 3px rgba(232,224,200,0.4);
+  }
+
+  /* Fader */
+  .fader-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .fader-track {
+    width: 10px;
+    height: 100px;
+    background: linear-gradient(180deg, #0a0c08 0%, #141610 100%);
+    border: 1px solid #2a2e24;
+    border-radius: 3px;
+    position: relative;
+    cursor: pointer;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+  }
+
+  .fader-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, rgba(232,168,50,0.5) 0%, rgba(232,168,50,0.15) 100%);
+    border-radius: 0 0 2px 2px;
+    transition: height 0.05s;
+  }
+
+  .fader-cap {
+    position: absolute;
+    left: 50%;
+    width: 24px;
+    height: 13px;
+    background: linear-gradient(180deg, #d8d0b8 0%, #b8b098 100%);
+    border: 1px solid #e0d8c0;
+    border-radius: 2px;
+    transform: translate(-50%, 50%);
+    cursor: ns-resize;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,240,0.4);
+    transition: box-shadow 0.1s;
+  }
+
+  .fader-cap::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 14px;
+    height: 1px;
+    background: rgba(100,95,80,0.6);
+    transform: translate(-50%, -50%);
+  }
+
+  .fader-cap:hover { box-shadow: 0 2px 5px rgba(0,0,0,0.7), 0 0 8px rgba(232,168,50,0.3), inset 0 1px 0 rgba(255,255,240,0.4); }
+
+  .fader-label {
+    font-size: 7px;
+    letter-spacing: 1.5px;
+    color: var(--cream-dim);
+    text-transform: uppercase;
+  }
+
+  /* Global section */
+  .global-section {
+    background: linear-gradient(180deg, #1e2118 0%, #191c14 100%);
+    border: 1px solid #2e3228;
+    border-radius: 4px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .global-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--cream-dim);
+    min-width: 80px;
+  }
+
+  .tape-speed-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .speed-knob {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, #3a3e30 0%, #222520 60%, #111310 100%);
+    border: 1px solid #3a3e30;
+    cursor: ns-resize;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,200,0.06);
+    user-select: none;
+  }
+
+  .speed-knob:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.8), 0 0 10px rgba(232,168,50,0.18), inset 0 1px 0 rgba(255,255,200,0.06); }
+
+  .speed-dot {
+    position: absolute;
+    width: 4px;
+    height: 14px;
+    background: var(--amber-glow);
+    border-radius: 2px;
+    left: 50%;
+    top: 5px;
+    transform-origin: 50% 21px;
+    margin-left: -2px;
+    box-shadow: 0 0 6px rgba(240,188,80,0.8);
+  }
+
+  .speed-readout {
+    font-size: 9px;
+    color: var(--amber);
+    letter-spacing: 2px;
+    text-shadow: 0 0 6px rgba(232,168,50,0.4);
+  }
+
+  .screws {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, var(--screw), #2a2e24);
+    border: 1px solid #1a1c18;
+  }
+
+  .screw-tl { top: 8px; left: 8px; }
+  .screw-tr { top: 8px; right: 8px; }
+  .screw-bl { bottom: 8px; left: 8px; }
+  .screw-br { bottom: 8px; right: 8px; }
+
+  /* Chord name display */
+  .chord-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-align: center;
+    margin-top: 4px;
+    opacity: 0.85;
+  }
+
+  .saturate-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+
+  .sat-label {
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--cream-dim);
+    text-transform: uppercase;
+  }
+
+  .sat-leds {
+    display: flex;
+    gap: 3px;
+  }
+
+  .sat-led {
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+    background: #141610;
+    border: 1px solid #2a2e24;
+  }
+
+  .sat-led.green { background: #0a2014; border-color: #1a3a24; }
+  .sat-led.green.lit { background: #22cc55; box-shadow: 0 0 4px #22cc55; border-color: #33ee66; }
+  .sat-led.yellow { background: #201c08; border-color: #302a10; }
+  .sat-led.yellow.lit { background: #ddaa22; box-shadow: 0 0 4px #ddaa22; border-color: #eebb33; }
+  .sat-led.red { background: #200808; border-color: #301010; }
+  .sat-led.red.lit { background: #cc2200; box-shadow: 0 0 4px #cc2200; border-color: #ee3311; }
+
+  /* ── Camera / MediaPipe layer ── */
+  #camVideo {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* mirror */
+    opacity: 0;
+    transition: opacity 0.6s;
+    z-index: 0;
+    pointer-events: none;
+  }
+  #camVideo.active { opacity: 0.38; }
+
+  #handCanvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: scaleX(-1);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  body > .machine {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Cam toggle button */
+  #camToggle {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 10;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--cream-dim);
+    background: rgba(26,28,24,0.85);
+    border: 1px solid #3a3e34;
+    border-radius: 3px;
+    padding: 7px 14px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    backdrop-filter: blur(4px);
+  }
+  #camToggle:hover { color: var(--cream); border-color: var(--green-led); }
+  #camToggle.on { color: var(--green-led); border-color: var(--green-led); box-shadow: 0 0 10px rgba(34,204,85,0.2); }
+
+  /* Hand cursor dot */
+  .hand-cursor {
+    position: fixed;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(232,168,50,0.9);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 5;
+    transition: transform 0.05s, background 0.1s;
+    display: none;
+  }
+  .hand-cursor.pinching {
+    background: rgba(232,168,50,0.4);
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+
+  /* Fader highlight when hand over it */
+  .fader-track.hand-over {
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.8), 0 0 12px rgba(232,168,50,0.5);
+    border-color: rgba(232,168,50,0.6);
+  }
+</style>
+</head>
+<body>
+
+<!-- Camera background layer -->
+<video id="camVideo" autoplay playsinline muted></video>
+<canvas id="handCanvas"></canvas>
+
+<!-- Hand cursor indicators (one per hand) -->
+<div class="hand-cursor" id="cursor0"></div>
+<div class="hand-cursor" id="cursor1"></div>
+
+<!-- Camera toggle -->
+<button id="camToggle" onclick="toggleCamera()">◎ CAMERA OFF</button>
+
+<div class="machine">
+  <!-- Corner screws -->
+  <div class="screws screw-tl"></div>
+  <div class="screws screw-tr"></div>
+  <div class="screws screw-bl"></div>
+  <div class="screws screw-br"></div>
+
+  <!-- Badge -->
+  <div class="badge-strip">
+    <div>
+      <div class="brand">DRONE TAPE</div>
+      <div class="model">Model DT-4 &nbsp;·&nbsp; Ambient Series</div>
+    </div>
+    <div class="power-section">
+      <div class="power-led" id="powerLed"></div>
+      <button class="power-btn" id="powerBtn" onclick="togglePower()">POWER</button>
+    </div>
+  </div>
+
+  <!-- Tape window -->
+  <div class="tape-window">
+    <div class="reel" id="reelL">
+      <div class="reel-spokes" id="reelSpokesL">
+        <div class="reel-spoke" style="transform: rotate(0deg) translateX(-50%)"></div>
+        <div class="reel-spoke" style="transform: rotate(60deg) translateX(-50%)"></div>
+        <div class="reel-spoke" style="transform: rotate(120deg) translateX(-50%)"></div>
+        <div class="reel-spoke" style="transform: rotate(180deg) translateX(-50%)"></div>
+        <div class="reel-spoke" style="transform: rotate(240deg) translateX(-50%)"></div>
+        <div class="reel-spoke" style="transform: rotate(300deg) translateX(-50%)"></div>
+      </div>
+      <div class="reel-hub"></div>
+    </div>
+
+    <div class="tape-path">
+      <div class="tape-shimmer" id="tapeShimmer"></div>
+    </div>
+
+    <div class="tape-counter" id="tapeCounter">000</div>
+
+    <div class="tape-path">
+      <div class="tape-shimmer" id="tapeShimmer2"></div>
+    </div>
+
+    <div class="reel" id="reelR">
+      <div class="reel-spokes" id="reelSpokesR">
+        <div class="reel-spoke" style="transform: rotate(30deg) translateX(-50%)"></div>
+        <div class="reel-spoke" style="transform: rotate(90deg) translateX(-50%)"></div>
+        <div class="reel-spoke" style="transform: rotate(150deg) translateX(-50%)"></div>
+        <div class="reel-spoke" style="transform: rotate(210deg) translateX(-50%)"></div>
+        <div class="reel-spoke" style="transform: rotate(270deg) translateX(-50%)"></div>
+        <div class="reel-spoke" style="transform: rotate(330deg) translateX(-50%)"></div>
+      </div>
+      <div class="reel-hub"></div>
+    </div>
+  </div>
+
+  <!-- Transport -->
+  <div class="transport">
+    <button class="transport-btn" onclick="transportAction('rew')">&#9664;&#9664; REW</button>
+    <button class="transport-btn" onclick="transportAction('stop')">&#9646;&#9646; STOP</button>
+    <button class="transport-btn" id="btnPlay" onclick="transportAction('play')">&#9654; PLAY</button>
+    <button class="transport-btn" id="btnRec" onclick="transportAction('rec')">&#9679; REC</button>
+    <button class="transport-btn" onclick="transportAction('ff')">FF &#9654;&#9654;</button>
+  </div>
+
+  <!-- 4 Channels -->
+  <div class="channels" id="channels"></div>
+
+  <!-- Global Controls -->
+  <div class="global-section">
+    <div class="global-label">TAPE<br>SPEED</div>
+    <div class="tape-speed-wrap">
+      <div class="speed-knob" id="speedKnob" data-value="0.5">
+        <div class="speed-dot" id="speedDot" style="transform: rotate(-150deg)"></div>
+      </div>
+      <div class="speed-readout" id="speedReadout">7.5 IPS</div>
+    </div>
+
+    <div class="global-label" style="margin-left:16px">MASTER<br>SAT</div>
+    <div class="tape-speed-wrap">
+      <div class="knob-wrap">
+        <div class="knob" id="satKnob" data-value="0.3">
+          <div class="knob-dot" style="transform: rotate(-120deg)"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="saturate-indicator" id="satIndicator">
+      <div class="sat-label">LEVEL</div>
+      <div class="sat-leds">
+        <div class="sat-led green" id="led0"></div>
+        <div class="sat-led green" id="led1"></div>
+        <div class="sat-led green" id="led2"></div>
+        <div class="sat-led yellow" id="led3"></div>
+        <div class="sat-led yellow" id="led4"></div>
+        <div class="sat-led red" id="led5"></div>
+        <div class="sat-led red" id="led6"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Audio Engine ───────────────────────────────────────────────────────────
+let ctx = null;
+let masterGain, masterCompressor, distortion, masterFilter;
+let isPlaying = false;
+let isPowered = false;
+let counterVal = 0;
+let counterInterval = null;
+let reelAngle = 0;
+let reelRAF = null;
+
+// D/Bm ambient voicings — drone pads
+// Chord 1: Dmaj9 (open, airy)
+// Chord 2: Bm11 (dark, floating)
+// Chord 3: Gmaj7add9 (earthy resolve)
+// Chord 4: A7sus4 (unresolved tension)
+const CHORDS = [
+  { name: 'Dmaj9',    color: '#dd5533', freqs: [73.42, 146.83, 185.00, 220.00, 277.18, 329.63] },
+  { name: 'Bm11',     color: '#44bb55', freqs: [61.74, 123.47, 146.83, 185.00, 220.00, 261.63] },
+  { name: 'Gmaj7',    color: '#ddbb22', freqs: [49.00, 98.00, 146.83, 185.00, 196.00, 246.94] },
+  { name: 'A7sus4',   color: '#5599dd', freqs: [55.00, 110.00, 146.83, 164.81, 196.00, 220.00] },
+];
+
+const channels = [];
+
+function makeChannel(chordIdx) {
+  const chord = CHORDS[chordIdx];
+  const nodes = {};
+
+  // Each frequency gets its own oscillator pair (drone + slight detune for fatness)
+  nodes.oscs = [];
+  chord.freqs.forEach((f, i) => {
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = 0.12 / chord.freqs.length;
+
+    // Two slightly detuned oscillators per partial
+    [-4, 0, 4].forEach(detune => {
+      const osc = ctx.createOscillator();
+      osc.type = i < 2 ? 'sawtooth' : (i < 4 ? 'triangle' : 'sine');
+      osc.frequency.value = f;
+      osc.detune.value = detune + (Math.random() * 4 - 2);
+
+      // Slow LFO wobble for tape feel
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.value = 0.08 + Math.random() * 0.12;
+      lfoGain.gain.value = f * 0.003;
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+      lfo.start();
+      osc.start();
+      osc.connect(gainNode);
+    });
+
+    nodes.oscs.push(gainNode);
+  });
+
+  // Channel nodes
+  nodes.channelGain = ctx.createGain();
+  nodes.channelGain.gain.value = 0;
+
+  nodes.hiEQ = ctx.createBiquadFilter();
+  nodes.hiEQ.type = 'highshelf';
+  nodes.hiEQ.frequency.value = 3200;
+  nodes.hiEQ.gain.value = 0;
+
+  nodes.loEQ = ctx.createBiquadFilter();
+  nodes.loEQ.type = 'lowshelf';
+  nodes.loEQ.frequency.value = 200;
+  nodes.loEQ.gain.value = 0;
+
+  nodes.gainNode = ctx.createGain();
+  nodes.gainNode.gain.value = 1;
+
+  // Connect chain: oscs → channelGain → loEQ → hiEQ → gainNode → master
+  nodes.oscs.forEach(o => o.connect(nodes.channelGain));
+  nodes.channelGain.connect(nodes.loEQ);
+  nodes.loEQ.connect(nodes.hiEQ);
+  nodes.hiEQ.connect(nodes.gainNode);
+  nodes.gainNode.connect(masterFilter);
+
+  return nodes;
+}
+
+function initAudio() {
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+  masterGain = ctx.createGain();
+  masterGain.gain.value = 0.85;
+
+  masterCompressor = ctx.createDynamicsCompressor();
+  masterCompressor.threshold.value = -18;
+  masterCompressor.knee.value = 6;
+  masterCompressor.ratio.value = 4;
+  masterCompressor.attack.value = 0.05;
+  masterCompressor.release.value = 0.3;
+
+  masterFilter = ctx.createBiquadFilter();
+  masterFilter.type = 'lowpass';
+  masterFilter.frequency.value = 6000;
+
+  // Waveshaper for tape saturation
+  distortion = ctx.createWaveShaper();
+  distortion.curve = makeSatCurve(20);
+  distortion.oversample = '4x';
+
+  masterFilter.connect(distortion);
+  distortion.connect(masterCompressor);
+  masterCompressor.connect(masterGain);
+  masterGain.connect(ctx.destination);
+
+  // Build 4 channels
+  for (let i = 0; i < 4; i++) {
+    channels.push(makeChannel(i));
+  }
+}
+
+function makeSatCurve(amount) {
+  const n = 256, curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = (i * 2) / n - 1;
+    curve[i] = ((Math.PI + amount) * x) / (Math.PI + amount * Math.abs(x));
+  }
+  return curve;
+}
+
+// ─── State ───────────────────────────────────────────────────────────────────
+const state = {
+  faders: [0, 0, 0, 0],        // 0–1
+  gains: [0.5, 0.5, 0.5, 0.5], // 0–1
+  hiEQs: [0.5, 0.5, 0.5, 0.5], // 0–1 → -12 to +12 dB
+  loEQs: [0.5, 0.5, 0.5, 0.5],
+  tapeSpeed: 0.5,
+  saturation: 0.3,
+};
+
+// ─── UI Build ────────────────────────────────────────────────────────────────
+function buildChannels() {
+  const container = document.getElementById('channels');
+  CHORDS.forEach((chord, i) => {
+    const el = document.createElement('div');
+    el.className = 'channel';
+    el.innerHTML = `
+      <div class="channel-header">
+        <div class="channel-num" style="color:${chord.color}; text-shadow: 0 0 10px ${chord.color}44">CH ${i+1}</div>
+        <div class="chord-name" style="color:${chord.color}">${chord.name}</div>
+        <div class="channel-label">Drone Pad</div>
+      </div>
+      <div class="vu-meter">
+        <div class="vu-bar" id="vu${i}" style="background: linear-gradient(90deg, ${chord.color}88, ${chord.color})"></div>
+      </div>
+      <div class="knob-row">
+        <div class="knob-group">
+          <div class="knob-label">HI EQ</div>
+          <div class="knob-wrap">
+            <div class="knob" data-param="hiEQ" data-ch="${i}" data-value="0.5">
+              <div class="knob-dot" style="transform: rotate(-150deg)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="knob-group">
+          <div class="knob-label">LO EQ</div>
+          <div class="knob-wrap">
+            <div class="knob" data-param="loEQ" data-ch="${i}" data-value="0.5">
+              <div class="knob-dot" style="transform: rotate(-150deg)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="knob-group">
+          <div class="knob-label">GAIN</div>
+          <div class="knob-wrap">
+            <div class="knob" data-param="gain" data-ch="${i}" data-value="0.5">
+              <div class="knob-dot" style="transform: rotate(-150deg)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fader-section">
+        <div class="fader-track" id="faderTrack${i}">
+          <div class="fader-fill" id="faderFill${i}" style="height:0%"></div>
+          <div class="fader-cap" id="faderCap${i}" style="bottom:0%"></div>
+        </div>
+        <div class="fader-label">VOL</div>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+}
+
+// ─── Interaction ─────────────────────────────────────────────────────────────
+let dragging = null;
+
+function startDrag(e, type, param, ch) {
+  e.preventDefault();
+  const startY = e.touches ? e.touches[0].clientY : e.clientY;
+  const startVal = type === 'fader' ? state.faders[ch]
+    : type === 'tapeSpeed' ? state.tapeSpeed
+    : type === 'saturation' ? state.saturation
+    : param === 'hiEQ' ? state.hiEQs[ch]
+    : param === 'loEQ' ? state.loEQs[ch]
+    : state.gains[ch];
+
+  dragging = { type, param, ch, startY, startVal };
+}
+
+function onMove(e) {
+  if (!dragging) return;
+  // Allow fader movement even when powered off (so user can pull down before power off)
+  if (!isPowered && dragging.type !== 'fader') return;
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+  const dy = dragging.startY - y;
+  const sensitivity = dragging.type === 'fader' ? 0.006 : 0.004;
+  let val = Math.max(0, Math.min(1, dragging.startVal + dy * sensitivity));
+
+  if (dragging.type === 'fader') {
+    state.faders[dragging.ch] = val;
+    updateFaderUI(dragging.ch, val);
+    if (ctx) {
+      channels[dragging.ch].channelGain.gain.setTargetAtTime(val * val, ctx.currentTime, 0.05);
+    }
+  } else if (dragging.type === 'tapeSpeed') {
+    state.tapeSpeed = val;
+    updateSpeedUI(val);
+    applyTapeSpeed(val);
+  } else if (dragging.type === 'saturation') {
+    state.saturation = val;
+    updateKnobUI(e.target, val);
+    if (ctx) distortion.curve = makeSatCurve(val * 80 + 5);
+  } else if (dragging.type === 'knob') {
+    const dot = e.target.tagName === 'DIV' && e.target.classList.contains('knob')
+      ? e.target.querySelector('.knob-dot')
+      : dragging.dot;
+    if (dragging.param === 'hiEQ') {
+      state.hiEQs[dragging.ch] = val;
+      if (ctx) channels[dragging.ch].hiEQ.gain.setTargetAtTime((val - 0.5) * 24, ctx.currentTime, 0.05);
+    } else if (dragging.param === 'loEQ') {
+      state.loEQs[dragging.ch] = val;
+      if (ctx) channels[dragging.ch].loEQ.gain.setTargetAtTime((val - 0.5) * 24, ctx.currentTime, 0.05);
+    } else if (dragging.param === 'gain') {
+      state.gains[dragging.ch] = val;
+      if (ctx) channels[dragging.ch].gainNode.gain.setTargetAtTime(val * 2, ctx.currentTime, 0.05);
+    }
+    if (dragging.knobEl) {
+      const dot = dragging.knobEl.querySelector('.knob-dot');
+      if (dot) dot.style.transform = `rotate(${(val - 0.5) * 300}deg)`;
+    }
+  }
+}
+
+function onUp() { dragging = null; }
+
+function updateFaderUI(ch, val) {
+  const pct = val * 100;
+  document.getElementById(`faderFill${ch}`).style.height = pct + '%';
+  document.getElementById(`faderCap${ch}`).style.bottom = `calc(${pct}% - 6px)`;
+}
+
+function updateKnobUI(el, val) {
+  const dot = el.querySelector ? el.querySelector('.knob-dot') : null;
+  if (dot) dot.style.transform = `rotate(${(val - 0.5) * 300}deg)`;
+}
+
+function updateSpeedUI(val) {
+  const angle = (val - 0.5) * 300;
+  document.getElementById('speedDot').style.transform = `rotate(${angle}deg)`;
+  const ips = (val * 14 + 1).toFixed(1);
+  document.getElementById('speedReadout').textContent = `${ips} IPS`;
+}
+
+function applyTapeSpeed(val) {
+  if (!ctx) return;
+  // Tape speed changes pitch via detune on all oscillators
+  const cents = (val - 0.5) * 400; // ±200 cents = ±2 semitones
+  channels.forEach(ch => {
+    ch.oscs.forEach(gainNode => {
+      // Can't detune gain nodes, so we adjust via master filter as proxy
+    });
+  });
+  // Adjust master filter freq as tape color effect
+  masterFilter.frequency.setTargetAtTime(3000 + val * 6000, ctx.currentTime, 0.3);
+}
+
+// ─── Transport ───────────────────────────────────────────────────────────────
+function togglePower() {
+  if (!isPowered) {
+    isPowered = true;
+    if (!ctx) initAudio();
+    if (ctx.state === 'suspended') ctx.resume();
+    document.getElementById('powerLed').classList.add('on');
+    document.getElementById('powerBtn').classList.add('active');
+  } else {
+    isPowered = false;
+    if (isPlaying) stopPlayback();
+    else if (ctx) masterGain.gain.setTargetAtTime(0, ctx.currentTime, 0.15);
+    // Reset all faders to zero visually and in state
+    for (let i = 0; i < 4; i++) {
+      state.faders[i] = 0;
+      updateFaderUI(i, 0);
+      if (ctx) channels[i].channelGain.gain.setTargetAtTime(0, ctx.currentTime, 0.1);
+    }
+    document.getElementById('powerLed').classList.remove('on');
+    document.getElementById('powerBtn').classList.remove('active');
+    document.getElementById('btnPlay').classList.remove('play-active');
+    document.getElementById('btnRec').classList.remove('rec-active');
+  }
+}
+
+function transportAction(action) {
+  if (!isPowered && action !== 'stop') return;
+
+  const btnPlay = document.getElementById('btnPlay');
+  const btnRec = document.getElementById('btnRec');
+
+  if (action === 'play') {
+    if (!isPlaying) {
+      isPlaying = true;
+      btnPlay.classList.add('play-active');
+      resumeAudio();
+      startCounter();
+      startReels();
+      document.getElementById('tapeShimmer').classList.add('moving');
+      document.getElementById('tapeShimmer2').classList.add('moving');
+    }
+  } else if (action === 'stop') {
+    if (isPlaying) stopPlayback();
+    btnPlay.classList.remove('play-active');
+    btnRec.classList.remove('rec-active');
+  } else if (action === 'rec') {
+    if (!isPlaying) transportAction('play');
+    btnRec.classList.toggle('rec-active');
+  } else if (action === 'rew') {
+    counterVal = Math.max(0, counterVal - 20);
+  } else if (action === 'ff') {
+    counterVal = Math.min(999, counterVal + 20);
+  }
+}
+
+function stopPlayback() {
+  isPlaying = false;
+  clearInterval(counterInterval);
+  cancelAnimationFrame(reelRAF);
+  document.getElementById('tapeShimmer').classList.remove('moving');
+  document.getElementById('tapeShimmer2').classList.remove('moving');
+  // Silence all channels immediately via master gain fade
+  if (ctx) {
+    masterGain.gain.setTargetAtTime(0, ctx.currentTime, 0.08);
+  }
+}
+
+function resumeAudio() {
+  if (ctx) {
+    masterGain.gain.setTargetAtTime(0.85, ctx.currentTime, 0.08);
+  }
+}
+
+function startCounter() {
+  clearInterval(counterInterval);
+  counterInterval = setInterval(() => {
+    counterVal = (counterVal + 1) % 1000;
+    document.getElementById('tapeCounter').textContent = String(counterVal).padStart(3, '0');
+  }, 200);
+}
+
+function startReels() {
+  const reelL = document.getElementById('reelSpokesL');
+  const reelR = document.getElementById('reelSpokesR');
+  let angle = 0;
+  function spin() {
+    if (!isPlaying) return;
+    const speed = state.tapeSpeed * 3 + 0.5;
+    angle += speed;
+    reelL.style.transform = `rotate(${angle}deg)`;
+    reelR.style.transform = `rotate(${-angle * 0.7}deg)`;
+    reelRAF = requestAnimationFrame(spin);
+  }
+  spin();
+}
+
+// ─── VU Meters ───────────────────────────────────────────────────────────────
+function updateVU() {
+  CHORDS.forEach((_, i) => {
+    const fader = state.faders[i];
+    const gain = state.gains[i];
+    const level = fader * gain;
+    const noise = isPlaying ? (Math.random() * 0.08 * level) : 0;
+    const pct = Math.min(100, (level + noise) * 100);
+    document.getElementById(`vu${i}`).style.width = pct + '%';
+  });
+
+  // Master level LEDs
+  const master = state.faders.reduce((a, f, i) => a + f * state.gains[i], 0) / 4;
+  const leds = [0, 0.15, 0.3, 0.5, 0.65, 0.8, 0.92];
+  leds.forEach((thresh, idx) => {
+    const led = document.getElementById(`led${idx}`);
+    if (led) {
+      const jitter = isPlaying ? (Math.random() * 0.1) : 0;
+      led.classList.toggle('lit', (master + jitter) > thresh);
+    }
+  });
+
+  requestAnimationFrame(updateVU);
+}
+
+// ─── Event Binding ───────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildChannels();
+  updateVU();
+
+  // Fader events
+  for (let i = 0; i < 4; i++) {
+    const cap = document.getElementById(`faderCap${i}`);
+    cap.addEventListener('mousedown', e => startDrag(e, 'fader', null, i));
+    cap.addEventListener('touchstart', e => startDrag(e, 'fader', null, i), { passive: false });
+  }
+
+  // Knob events (delegated)
+  document.addEventListener('mousedown', e => {
+    const knob = e.target.closest('.knob');
+    if (!knob) return;
+    const param = knob.dataset.param;
+    const ch = parseInt(knob.dataset.ch);
+    if (knob.id === 'satKnob') {
+      startDrag(e, 'saturation', null, null);
+      dragging.knobEl = knob;
+    } else {
+      startDrag(e, 'knob', param, ch);
+      dragging.knobEl = knob;
+    }
+  });
+
+  document.addEventListener('touchstart', e => {
+    const knob = e.target.closest('.knob');
+    if (!knob) return;
+    const param = knob.dataset.param;
+    const ch = parseInt(knob.dataset.ch);
+    startDrag(e, 'knob', param, ch);
+    dragging.knobEl = knob;
+  }, { passive: false });
+
+  // Speed knob
+  const speedKnob = document.getElementById('speedKnob');
+  speedKnob.addEventListener('mousedown', e => { startDrag(e, 'tapeSpeed', null, null); dragging.knobEl = speedKnob; });
+  speedKnob.addEventListener('touchstart', e => { startDrag(e, 'tapeSpeed', null, null); dragging.knobEl = speedKnob; }, { passive: false });
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchend', onUp);
+});
+<!-- MediaPipe Hands -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+<script>
+// ─── Camera & MediaPipe State ─────────────────────────────────────────────────
+let cameraActive = false;
+let mpHands = null;
+let mpCamera = null;
+let handCanvas, handCtx, camVideo;
+
+// Per-hand tracking state (up to 2 hands)
+const handState = [
+  { active: false, pinching: false, grabbing: null, lastY: 0, grabStartY: 0, grabStartVal: 0 },
+  { active: false, pinching: false, grabbing: null, lastY: 0, grabStartY: 0, grabStartVal: 0 },
+];
+
+// Control hit zones — populated after DOM ready, updated on resize
+const hitZones = [];
+
+function buildHitZones() {
+  hitZones.length = 0;
+
+  // Fader tracks
+  for (let i = 0; i < 4; i++) {
+    const el = document.getElementById(`faderCap${i}`);
+    const track = document.getElementById(`faderTrack${i}`);
+    if (el && track) {
+      hitZones.push({ type: 'fader', ch: i, el, trackEl: track });
+    }
+  }
+
+  // Knobs — gather all .knob elements
+  document.querySelectorAll('.knob').forEach(knob => {
+    const param = knob.dataset.param;
+    const ch = parseInt(knob.dataset.ch);
+    const id = knob.id;
+    hitZones.push({
+      type: id === 'satKnob' ? 'saturation' : 'knob',
+      param: id === 'satKnob' ? null : param,
+      ch: isNaN(ch) ? null : ch,
+      el: knob,
+      knobEl: knob,
+    });
+  });
+
+  // Speed knob
+  const speedEl = document.getElementById('speedKnob');
+  if (speedEl) {
+    hitZones.push({ type: 'tapeSpeed', el: speedEl, knobEl: speedEl });
+  }
+}
+
+function getZoneAt(nx, ny) {
+  // nx, ny are 0-1 normalized (MediaPipe output), mirrored to match CSS mirror
+  const sx = (1 - nx) * window.innerWidth;
+  const sy = ny * window.innerHeight;
+
+  for (const zone of hitZones) {
+    const r = zone.el.getBoundingClientRect();
+    // Expand hit area slightly for easier grabbing
+    const pad = 16;
+    if (sx >= r.left - pad && sx <= r.right + pad &&
+        sy >= r.top - pad && sy <= r.bottom + pad) {
+      return { zone, sx, sy };
+    }
+  }
+  return null;
+}
+
+function pinchDistance(landmarks) {
+  // Thumb tip = 4, Index tip = 8
+  const thumb = landmarks[4];
+  const index = landmarks[8];
+  const dx = thumb.x - index.x;
+  const dy = thumb.y - index.y;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function pinchMidpoint(landmarks) {
+  const thumb = landmarks[4];
+  const index = landmarks[8];
+  return { x: (thumb.x + index.x) / 2, y: (thumb.y + index.y) / 2 };
+}
+
+function onHandResults(results) {
+  // Clear canvas
+  handCtx.clearRect(0, 0, handCanvas.width, handCanvas.height);
+
+  // Reset all active states
+  handState.forEach(h => h.active = false);
+
+  // Clear fader highlights
+  for (let i = 0; i < 4; i++) {
+    const t = document.getElementById(`faderTrack${i}`);
+    if (t) t.classList.remove('hand-over');
+  }
+
+  if (!results.multiHandLandmarks) return;
+
+  results.multiHandLandmarks.forEach((landmarks, handIdx) => {
+    if (handIdx > 1) return;
+    const hs = handState[handIdx];
+    hs.active = true;
+
+    // Draw skeleton
+    drawConnectors(handCtx, landmarks, HAND_CONNECTIONS, {
+      color: handIdx === 0 ? 'rgba(232,168,50,0.6)' : 'rgba(85,153,221,0.6)',
+      lineWidth: 2
+    });
+    drawLandmarks(handCtx, landmarks, {
+      color: handIdx === 0 ? 'rgba(232,168,50,0.9)' : 'rgba(85,153,221,0.9)',
+      fillColor: 'rgba(0,0,0,0.4)',
+      lineWidth: 1,
+      radius: 3
+    });
+
+    // Pinch detection
+    const dist = pinchDistance(landmarks);
+    const wasPinching = hs.pinching;
+    hs.pinching = dist < 0.07;
+
+    // Midpoint of pinch (used as cursor)
+    const mid = pinchMidpoint(landmarks);
+    // Mirror x to match CSS transform: scaleX(-1)
+    const screenX = (1 - mid.x) * window.innerWidth;
+    const screenY = mid.y * window.innerHeight;
+
+    // Update visual cursor
+    const cursor = document.getElementById(`cursor${handIdx}`);
+    if (cursor) {
+      cursor.style.display = 'block';
+      cursor.style.left = screenX + 'px';
+      cursor.style.top = screenY + 'px';
+      cursor.classList.toggle('pinching', hs.pinching);
+    }
+
+    // ── Grab logic ───────────────────────────────────────────────────────────
+    if (hs.pinching && !wasPinching) {
+      // Pinch just started — find zone under cursor
+      const hit = getZoneAt(mid.x, mid.y);
+      if (hit && isPowered) {
+        hs.grabbing = hit.zone;
+        hs.grabStartY = screenY;
+        hs.grabStartVal =
+          hit.zone.type === 'fader' ? state.faders[hit.zone.ch]
+          : hit.zone.type === 'tapeSpeed' ? state.tapeSpeed
+          : hit.zone.type === 'saturation' ? state.saturation
+          : hit.zone.param === 'hiEQ' ? state.hiEQs[hit.zone.ch]
+          : hit.zone.param === 'loEQ' ? state.loEQs[hit.zone.ch]
+          : state.gains[hit.zone.ch];
+      }
+    }
+
+    if (!hs.pinching) {
+      hs.grabbing = null;
+    }
+
+    if (hs.grabbing) {
+      const zone = hs.grabbing;
+      const dy = hs.grabStartY - screenY;
+      const sensitivity = zone.type === 'fader' ? 0.005 : 0.004;
+      const val = Math.max(0, Math.min(1, hs.grabStartVal + dy * sensitivity));
+
+      if (zone.type === 'fader') {
+        state.faders[zone.ch] = val;
+        updateFaderUI(zone.ch, val);
+        if (ctx) channels[zone.ch].channelGain.gain.setTargetAtTime(val * val, ctx.currentTime, 0.05);
+        const t = document.getElementById(`faderTrack${zone.ch}`);
+        if (t) t.classList.add('hand-over');
+      } else if (zone.type === 'tapeSpeed') {
+        state.tapeSpeed = val;
+        updateSpeedUI(val);
+        applyTapeSpeed(val);
+      } else if (zone.type === 'saturation') {
+        state.saturation = val;
+        if (ctx) distortion.curve = makeSatCurve(val * 80 + 5);
+      } else if (zone.type === 'knob') {
+        if (zone.param === 'hiEQ') {
+          state.hiEQs[zone.ch] = val;
+          if (ctx) channels[zone.ch].hiEQ.gain.setTargetAtTime((val - 0.5) * 24, ctx.currentTime, 0.05);
+        } else if (zone.param === 'loEQ') {
+          state.loEQs[zone.ch] = val;
+          if (ctx) channels[zone.ch].loEQ.gain.setTargetAtTime((val - 0.5) * 24, ctx.currentTime, 0.05);
+        } else if (zone.param === 'gain') {
+          state.gains[zone.ch] = val;
+          if (ctx) channels[zone.ch].gainNode.gain.setTargetAtTime(val * 2, ctx.currentTime, 0.05);
+        }
+        if (zone.knobEl) {
+          const dot = zone.knobEl.querySelector('.knob-dot');
+          if (dot) dot.style.transform = `rotate(${(val - 0.5) * 300}deg)`;
+        }
+      }
+    } else {
+      // Hover highlight — show which zone finger is over
+      const indexTip = landmarks[8];
+      const hit = getZoneAt(indexTip.x, indexTip.y);
+      if (hit && hit.zone.type === 'fader') {
+        const t = document.getElementById(`faderTrack${hit.zone.ch}`);
+        if (t) t.classList.add('hand-over');
+      }
+    }
+  });
+
+  // Hide cursors for inactive hands
+  handState.forEach((hs, i) => {
+    if (!hs.active) {
+      const c = document.getElementById(`cursor${i}`);
+      if (c) c.style.display = 'none';
+      hs.grabbing = null;
+    }
+  });
+}
+
+async function toggleCamera() {
+  const btn = document.getElementById('camToggle');
+  const video = document.getElementById('camVideo');
+
+  if (!cameraActive) {
+    // Init MediaPipe on first use
+    if (!mpHands) {
+      mpHands = new Hands({
+        locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      });
+      mpHands.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.6,
+      });
+      mpHands.onResults(onHandResults);
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+      video.srcObject = stream;
+      await video.play();
+      video.classList.add('active');
+
+      // Size canvas to window
+      handCanvas.width = window.innerWidth;
+      handCanvas.height = window.innerHeight;
+
+      mpCamera = new Camera(video, {
+        onFrame: async () => {
+          await mpHands.send({ image: video });
+        },
+        width: 1280,
+        height: 720,
+      });
+      mpCamera.start();
+
+      cameraActive = true;
+      btn.textContent = '◎ CAMERA ON';
+      btn.classList.add('on');
+      buildHitZones();
+    } catch (err) {
+      btn.textContent = '✕ CAM DENIED';
+      console.error('Camera error:', err);
+    }
+  } else {
+    // Stop camera
+    if (mpCamera) mpCamera.stop();
+    if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+    video.classList.remove('active');
+    handCtx.clearRect(0, 0, handCanvas.width, handCanvas.height);
+    document.getElementById('cursor0').style.display = 'none';
+    document.getElementById('cursor1').style.display = 'none';
+    cameraActive = false;
+    btn.textContent = '◎ CAMERA OFF';
+    btn.classList.remove('on');
+  }
+}
+
+// Resize canvas on window resize
+window.addEventListener('resize', () => {
+  if (handCanvas) {
+    handCanvas.width = window.innerWidth;
+    handCanvas.height = window.innerHeight;
+  }
+  if (cameraActive) buildHitZones();
+});
+
+// Init canvas refs after DOM ready (appended to existing DOMContentLoaded)
+document.addEventListener('DOMContentLoaded', () => {
+  handCanvas = document.getElementById('handCanvas');
+  handCtx = handCanvas.getContext('2d');
+  camVideo = document.getElementById('camVideo');
+  handCanvas.width = window.innerWidth;
+  handCanvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>
