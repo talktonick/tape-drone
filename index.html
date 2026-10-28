@@ -639,6 +639,71 @@
     box-shadow: inset 0 2px 6px rgba(0,0,0,0.8), 0 0 12px rgba(232,168,50,0.5);
     border-color: rgba(232,168,50,0.6);
   }
+
+  /* Knob highlight when hand over it */
+  .knob.hand-over, .speed-knob.hand-over {
+    box-shadow: 0 3px 8px rgba(0,0,0,0.7), 0 0 14px rgba(232,168,50,0.35), inset 0 1px 0 rgba(255,255,200,0.05);
+  }
+
+  /* Instructions overlay */
+  .hand-instructions {
+    position: fixed;
+    bottom: 56px;
+    right: 16px;
+    z-index: 10;
+    background: rgba(26,28,24,0.92);
+    border: 1px solid #3a3e34;
+    border-radius: 4px;
+    padding: 12px 16px;
+    max-width: 260px;
+    backdrop-filter: blur(6px);
+    display: none;
+    animation: instrFadeIn 0.4s ease;
+  }
+
+  .hand-instructions.visible { display: block; }
+
+  @keyframes instrFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hand-instructions h4 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--amber);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .hand-instructions ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .hand-instructions li {
+    font-size: 10px;
+    color: var(--cream-dim);
+    letter-spacing: 1px;
+    line-height: 1.8;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .hand-instructions li::before {
+    content: '›';
+    position: absolute;
+    left: 4px;
+    color: var(--amber);
+  }
+
+  .hand-instructions .gesture-icon {
+    display: inline-block;
+    font-size: 13px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
 </style>
 </head>
 <body>
@@ -653,6 +718,17 @@
 
 <!-- Camera toggle -->
 <button id="camToggle" onclick="toggleCamera()">◎ CAMERA OFF</button>
+
+<!-- Hand tracking instructions -->
+<div class="hand-instructions" id="handInstructions">
+  <h4>Hand Controls</h4>
+  <ul>
+    <li><span class="gesture-icon">👌</span> PINCH thumb + index to grab</li>
+    <li><span class="gesture-icon">↕</span> MOVE hand up/down to adjust</li>
+    <li><span class="gesture-icon">✋</span> RELEASE pinch to let go</li>
+    <li><span class="gesture-icon">🎚</span> Works on faders, knobs, and tape speed</li>
+  </ul>
+</div>
 
 <div class="machine">
   <!-- Corner screws -->
@@ -1205,6 +1281,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('mouseup', onUp);
   document.addEventListener('touchend', onUp);
 });
+</script>
 <!-- MediaPipe Hands -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
@@ -1266,8 +1343,8 @@ function getZoneAt(nx, ny) {
 
   for (const zone of hitZones) {
     const r = zone.el.getBoundingClientRect();
-    // Expand hit area slightly for easier grabbing
-    const pad = 16;
+    // Expand hit area generously for camera-based pointing
+    const pad = zone.type === 'fader' ? 40 : 30;
     if (sx >= r.left - pad && sx <= r.right + pad &&
         sy >= r.top - pad && sy <= r.bottom + pad) {
       return { zone, sx, sy };
@@ -1298,11 +1375,12 @@ function onHandResults(results) {
   // Reset all active states
   handState.forEach(h => h.active = false);
 
-  // Clear fader highlights
+  // Clear all hand-over highlights
   for (let i = 0; i < 4; i++) {
     const t = document.getElementById(`faderTrack${i}`);
     if (t) t.classList.remove('hand-over');
   }
+  document.querySelectorAll('.knob.hand-over, .speed-knob.hand-over').forEach(el => el.classList.remove('hand-over'));
 
   if (!results.multiHandLandmarks) return;
 
@@ -1326,7 +1404,7 @@ function onHandResults(results) {
     // Pinch detection
     const dist = pinchDistance(landmarks);
     const wasPinching = hs.pinching;
-    hs.pinching = dist < 0.07;
+    hs.pinching = dist < 0.12;
 
     // Midpoint of pinch (used as cursor)
     const mid = pinchMidpoint(landmarks);
@@ -1403,9 +1481,13 @@ function onHandResults(results) {
       // Hover highlight — show which zone finger is over
       const indexTip = landmarks[8];
       const hit = getZoneAt(indexTip.x, indexTip.y);
-      if (hit && hit.zone.type === 'fader') {
-        const t = document.getElementById(`faderTrack${hit.zone.ch}`);
-        if (t) t.classList.add('hand-over');
+      if (hit) {
+        if (hit.zone.type === 'fader') {
+          const t = document.getElementById(`faderTrack${hit.zone.ch}`);
+          if (t) t.classList.add('hand-over');
+        } else if (hit.zone.knobEl) {
+          hit.zone.knobEl.classList.add('hand-over');
+        }
       }
     }
   });
@@ -1464,6 +1546,7 @@ async function toggleCamera() {
       btn.textContent = '◎ CAMERA ON';
       btn.classList.add('on');
       buildHitZones();
+      document.getElementById('handInstructions').classList.add('visible');
     } catch (err) {
       btn.textContent = '✕ CAM DENIED';
       console.error('Camera error:', err);
@@ -1479,6 +1562,7 @@ async function toggleCamera() {
     cameraActive = false;
     btn.textContent = '◎ CAMERA OFF';
     btn.classList.remove('on');
+    document.getElementById('handInstructions').classList.remove('visible');
   }
 }
 
